@@ -20,10 +20,6 @@ var port = normalizePort(process.env.PORT || '8081');
 const express = require('express');
 const app = express();
 
-/* BodyPaser*/
-var bodyparser = require('body-parser');
-var urlencoded = bodyparser.urlencoded({extended: false});
-
 
 /**
  * bir get apisi ile ekrana mesajımızı yazdıralım
@@ -58,47 +54,17 @@ function normalizePort(val) {
     return false;
   }
 
+/**
+ * Body Parser
+ */
+
+/* BodyPaser*/
+var bodyparser = require('body-parser');
+var urlencoded = bodyparser.urlencoded({extended: false});
 
 /* CRUD Fonksiyon Örneklerimiz */
-app.post('/getUserByName',urlencoded,(req,res) => {
-  User.find({name:req.body.name},(err,user) => {
-    if (err){  
-      throw err;
-    }
-    res.send(user);
-  })
-})
-
-
-app.post('/getUserById',urlencoded,(req,res) => {
-  User.findById(req.body.id,(err,user) => {
-    if (err){  
-      throw err;
-    }
-    res.send(user);
-  })
-})
-
-app.post('/getUserByWhereEmail',urlencoded,(req,res) => {
-  User.find({},(err,user) => {
-    if (err){  
-      throw err;
-    }
-    res.send(user);
-  }).where('email').equals(req.body.email);
-})
-
-app.post('/getUserByWhereEmailLimit',urlencoded,(req,res) => {
-  User.find({},(err,user) => {
-    if (err){  
-      throw err;
-    }
-    res.send(user);
-  }).where('email').equals(req.body.email).limit(1);
-})
-
 /**
- * bir post apisi ile ekrana mesajımızı yazdıralım
+ * User Create edelim
  */
 app.post('/create_user',urlencoded,(req,res) => {
   var user = new User({
@@ -111,4 +77,104 @@ app.post('/create_user',urlencoded,(req,res) => {
     res.send(req.body.name + " isimli User kayit edildi");
   })
   .catch( (err) => res.send(error + " hatası alındı") );
+})
+
+/**
+ * Read : İsme göre kayıtları listeleyelim
+ */
+app.post('/getUserList',urlencoded,(req,res) => {
+  User.find({},(err,user) => {
+    if (err){  
+      throw err;
+    }
+    res.send(user);
+  }).sort('name');
+})
+
+/**
+ * Read : İsme göre kayıt getir
+ */
+app.post('/getUserByName',urlencoded,(req,res) => {
+  User.find({name:req.body.name},(err,user) => {
+    if (err){  
+      throw err;
+    }
+    res.send(user);
+  }).sort('name');
+})
+
+
+/**
+ * Read : Id ye göre getir
+ */
+app.post('/getUserById',urlencoded,(req,res) => {
+  User.findById(req.body.id,(err,user) => {
+    if (err){  
+      throw err;
+    }
+    res.send(user);
+  })
+})
+
+/**
+ * Read : Email adresine göre kayıt getir
+ */
+app.post('/getUserByWhereEmail',urlencoded,(req,res) => {
+  User.find({},(err,user) => {
+    if (err){  
+      throw err;
+    }
+    res.send(user);
+  }).where('email').equals(req.body.email);
+})
+
+/**
+ * Read : Email adresi aynı olan kayıtlardan sadece bir tane kayıt getir
+ */
+app.post('/getUserByWhereEmailLimit',urlencoded,(req,res) => {
+  User.find({},(err,user) => {
+    if (err){  
+      throw err;
+    }
+    res.send(user);
+  }).where('email').equals(req.body.email).limit(1);
+})
+
+/**
+ * UPDATE: Email adresi aynı olan kayıtlardan sadece bir tane kayıt getir
+ */
+app.post('/updateUser',urlencoded,(req,res) => {
+  User.findById(req.body.id,(err,data) => {
+    if (err){  
+      throw err;
+    }
+    var oldName = data.name;
+    data.name=req.body.updateName
+   
+    data.save((error) => {
+      if (error){  
+        throw error;
+      }
+      res.send(oldName + " isimli User ismi, " + req.body.updateName + " ismi ile güncellendi");
+    });
+  });
+})
+
+
+/**
+ * DELETE: Email adresi aynı olan kayıtlardan sadece bir tane kayıt getir
+ */
+app.post('/deleteUser',urlencoded,(req,res) => {
+  User.findById(req.body.id,(err,data) => {
+    if (err){  
+      throw err;
+    }
+    var deletedData = data;
+    data.remove((error) => {
+      if (error){  
+        throw error;
+      }
+      res.send(deletedData.name + " isimli User silindi");
+    });
+  });
 })
